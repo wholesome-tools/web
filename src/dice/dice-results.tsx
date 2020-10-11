@@ -24,13 +24,13 @@ const DiceTools = styled.div`
 
 const DiceToolItem = styled.div`
   display: inline-block;
-  padding-right: 10px;
+  padding-right: 20px;
 `;
 
 const DiceToolLabel = styled.div`
   display: inline-block;
   vertical-align: baseline;
-  padding-right: 10px;
+  padding-right: 5px;
   &:after {
     content: ":";
   }
