@@ -7,6 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faList, faWrench, faRedo } from '@fortawesome/free-solid-svg-icons'
 import * as _ from 'lodash';
 import { Link, withRouter } from "react-router-dom";
+import { PasswordCountSelect } from "./password-count-select";
+import { Segment } from "../layout/segment";
 
 const PasswordCreatorWrap = styled.div`
   max-width: 400px;
@@ -92,7 +94,7 @@ export interface URLProps {
 const DefaultUrlProps: URLProps = {
   advanced: false,
   list: false,
-  count: 10,
+  count: 5,
   slider: 3
 };
 
@@ -158,7 +160,7 @@ export class PasswordCreatorComponent extends React.Component<any, PasswordCreat
 
   public render() {
     const { passwords, options } = this.state;
-    const { advanced, list, slider } = this.getUrlProps();
+    const { advanced, list, slider, count } = this.getUrlProps();
 
     const refreshLink = this.constructLink({});
     const multipleLink = this.constructLink({ list: !list });
@@ -166,7 +168,12 @@ export class PasswordCreatorComponent extends React.Component<any, PasswordCreat
 
     return (
       <PasswordCreatorWrap>
-        {_.map(passwords, password => <StyledTextField value={password} fullWidth onFocus={this.onFocus} margin='none' />)}
+        {_.map(passwords, password => (
+          <Segment>
+            <StyledTextField value={password} fullWidth onFocus={this.onFocus} margin='none' />
+          </Segment>
+        ))}
+        {list && <PasswordCountSelect count={Number(count) || 1} onChange={this.onCountChange} />}
         <PasswordComplexity>
           <PasswordComplexityLabel>
             Complexity
@@ -202,6 +209,17 @@ export class PasswordCreatorComponent extends React.Component<any, PasswordCreat
       </PasswordCreatorWrap>
     );
   }
+
+  public onCountChange = (count: number) => {
+    const props = this.getUrlProps();
+    this.setUrlProps({ count });
+    this.setState({
+      passwords: this.generatePasswords(
+        SliderOptions[props.slider - 1],
+        count
+      )
+    });
+  };
 
   public onRefresh = (e: React.MouseEvent) => {
     e.preventDefault();
