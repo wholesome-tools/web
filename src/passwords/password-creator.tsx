@@ -1,8 +1,12 @@
 import React from "react";
 import { PasswordGenerator, PasswordOptions, DefaultPasswordOptions } from '@wholesome/passwords';
-import { TextField, Slider } from "@material-ui/core";
+import { TextField, Slider, Tooltip } from "@material-ui/core";
 import styled from "styled-components";
 import { PasswordAdvanced } from "./password-advanced";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faList, faWrench } from '@fortawesome/free-solid-svg-icons'
+import * as _ from 'lodash';
+import { Link, withRouter } from "react-router-dom";
 
 const PasswordCreatorWrap = styled.div`
   max-width: 400px;
@@ -63,17 +67,34 @@ const PasswordComplexityControl = styled.div`
 `;
 
 const PasswordComplexityAdvanced = styled.div`
-  flex: 0 0 100px;
+  flex: 0 0 70px;
   vertical-align: baseline;
   text-align: right;
+
+  a {
+    display: inline-block;
+    margin-left: 15px;
+  }
 `;
 
-export interface PasswordGeneratorState {
-  advanced: boolean;
+export interface PasswordCreatorState {
   options: PasswordOptions;
-  password: string;
+  passwords: string[];
+}
+
+export interface URLProps {
+  advanced: boolean;
+  list: boolean;
+  count: number;
   slider: number;
 }
+
+const DefaultUrlProps: URLProps = {
+  advanced: false,
+  list: false,
+  count: 10,
+  slider: 3
+};
 
 const SliderOptions = [
   {
@@ -123,24 +144,28 @@ const SliderOptions = [
   },
 ];
 
-export class PasswordCreator extends React.Component<{}, PasswordGeneratorState> {
+export class PasswordCreatorComponent extends React.Component<any, PasswordCreatorState> {
   public constructor(props: any) {
     super(props);
-    const options = SliderOptions[2];
-    const password = PasswordGenerator.generate(options);
+    const { count, list, slider } = this.getUrlProps();
+    const options = SliderOptions[slider - 1];
+    const passwords = this.generatePasswords(options, count, list);
     this.state = {
-      advanced: false,
       options,
-      password,
-      slider: 2,
+      passwords,
     };
   }
 
   public render() {
-    const { password, slider, advanced, options } = this.state;
+    const { passwords, options } = this.state;
+    const { advanced, list, slider } = this.getUrlProps();
+
+    const multipleLink = this.constructLink({ list: !list });
+    const advancedLink = this.constructLink({ advanced: !advanced });
+
     return (
       <PasswordCreatorWrap>
-        <StyledTextField value={password} fullWidth onFocus={this.onFocus} margin='none' />
+        {_.map(passwords, password => <StyledTextField value={password} fullWidth onFocus={this.onFocus} margin='none' />)}
         <PasswordComplexity>
           <PasswordComplexityLabel>
             Complexity
@@ -152,12 +177,17 @@ export class PasswordCreator extends React.Component<{}, PasswordGeneratorState>
               marks
               min={0}
               max={4}
-              value={slider}
+              value={slider - 1}
               onChange={this.onSliderChange}
             />}
           </PasswordComplexityControl>
           <PasswordComplexityAdvanced>
-            <a href='#' onClick={this.toggleAdvanced}>{this.state.advanced ? 'Simple' : 'Advanced'}</a>
+            <Tooltip title='Multiple passwords'>
+              <Link to={multipleLink} onClick={this.onListClick}><FontAwesomeIcon icon={faList} /></Link>
+            </Tooltip>
+            <Tooltip title='Advanced'>
+              <Link to={advancedLink}><FontAwesomeIcon icon={faWrench} /></Link>
+            </Tooltip>
           </PasswordComplexityAdvanced>
         </PasswordComplexity>
         {advanced && <PasswordAdvanced
@@ -169,6 +199,29 @@ export class PasswordCreator extends React.Component<{}, PasswordGeneratorState>
     );
   }
 
+  public onListClick = () => {
+    const props = this.getUrlProps();
+    this.setState({
+      passwords: this.generatePasswords(
+        SliderOptions[props.slider - 1],
+        props.count,
+        !props.list
+      )
+    });
+  };
+
+  public constructLink = (obj: any) => {
+    const baseLink = '/passwords';
+    const fragments = _.pickBy(_.defaults(obj, this.getUrlProps()), (v, k) => v !== (DefaultUrlProps as any)[k]);
+
+    if (fragments.length === 0) {
+      return baseLink;
+    }
+
+    const linkFragments = _.map(fragments, (v, k) => _.isBoolean(v) && v ? k : `${k}=${v}`);
+    return `${baseLink}/${linkFragments.filter(v => v).join(';')}`;
+  };
+
   public onOptionCheckboxChange = (field: any) =>{
     const checked = field[1] > 0;
     const options = {
@@ -177,7 +230,7 @@ export class PasswordCreator extends React.Component<{}, PasswordGeneratorState>
     };
     this.setState({
       options,
-      password: PasswordGenerator.generate(options)
+      passwords: this.generatePasswords(options)
     });
   }
 
@@ -188,27 +241,8 @@ export class PasswordCreator extends React.Component<{}, PasswordGeneratorState>
     };
     this.setState({
       options,
-      password: PasswordGenerator.generate(options)
+      passwords: this.generatePasswords(options)
     });
-  }
-
-  private toggleAdvanced = (event: any) => {
-    event.preventDefault();
-
-    // Reset options if switching back from advanced
-    if (this.state.advanced) {
-      const options = SliderOptions[this.state.slider];
-      const password = PasswordGenerator.generate(options);
-      this.setState({
-        options,
-        password,
-        advanced: false
-      });
-    } else {
-      this.setState({
-        advanced: true
-      });
-    }
   }
 
   private onFocus = (event: any) => {
@@ -218,14 +252,38 @@ export class PasswordCreator extends React.Component<{}, PasswordGeneratorState>
     target.setSelectionRange(0, target.value.length);
   }
 
-  private onSliderChange = (event: any, slider: any) => {
-    if (slider !== this.state.slider) {
-      const options = SliderOptions[slider];
+  private onSliderChange = (event: any, sliderRaw: any) => {
+    const slider = sliderRaw + 1;
+    if (slider !== this.getUrlProps().slider) {
+      const options = SliderOptions[slider - 1];
       this.setState({
         options,
-        slider,
-        password: PasswordGenerator.generate(options)
+        passwords: this.generatePasswords(options)
       });
+      this.setUrlProps({ slider });
     }
   }
+
+  private generatePasswords(options = SliderOptions[this.getUrlProps().slider - 1], count = this.getUrlProps().count, list = this.getUrlProps().list): string[] {
+    return _.times(list ? count : 1, () => PasswordGenerator.generate(options));
+  }
+
+  private setUrlProps = (props: Partial<URLProps>) => {
+    this.props.history.push(this.constructLink(props));
+  };
+
+  private getUrlProps = () => {
+    const urlPropsStr = _.get(this.props.location.pathname.split('/'), [2], '') as string;
+    const urlProps = _.reduce(urlPropsStr.split(';'), (r, fragment) => {
+      const bits = fragment.split('=');
+      if (bits.length > 1) {
+        return { ...r, [bits[0]]: bits[1] };
+      }
+      return { ...r, [bits[0]]: true };
+    }, {});
+    const produced = _.defaults(urlProps, DefaultUrlProps);
+    return produced;
+  }
 }
+
+export const PasswordCreator = withRouter(PasswordCreatorComponent as any) as any;
