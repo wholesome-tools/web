@@ -254,7 +254,7 @@ export class PasswordCreatorComponent extends React.Component<any, PasswordCreat
 
   private onSliderChange = (event: any, sliderRaw: any) => {
     const slider = sliderRaw + 1;
-    if (slider !== this.getUrlProps().slider) {
+    if (slider !== Number(this.getUrlProps().slider)) {
       const options = SliderOptions[slider - 1];
       this.setState({
         options,
