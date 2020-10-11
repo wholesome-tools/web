@@ -4,7 +4,7 @@ import { TextField, Slider, Tooltip } from "@material-ui/core";
 import styled from "styled-components";
 import { PasswordAdvanced } from "./password-advanced";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faList, faWrench } from '@fortawesome/free-solid-svg-icons'
+import { faList, faWrench, faRedo } from '@fortawesome/free-solid-svg-icons'
 import * as _ from 'lodash';
 import { Link, withRouter } from "react-router-dom";
 
@@ -67,7 +67,7 @@ const PasswordComplexityControl = styled.div`
 `;
 
 const PasswordComplexityAdvanced = styled.div`
-  flex: 0 0 70px;
+  flex: 0 0 100px;
   vertical-align: baseline;
   text-align: right;
 
@@ -160,6 +160,7 @@ export class PasswordCreatorComponent extends React.Component<any, PasswordCreat
     const { passwords, options } = this.state;
     const { advanced, list, slider } = this.getUrlProps();
 
+    const refreshLink = this.constructLink({});
     const multipleLink = this.constructLink({ list: !list });
     const advancedLink = this.constructLink({ advanced: !advanced });
 
@@ -182,6 +183,9 @@ export class PasswordCreatorComponent extends React.Component<any, PasswordCreat
             />}
           </PasswordComplexityControl>
           <PasswordComplexityAdvanced>
+            <Tooltip title='Re-generate'>
+              <Link to={refreshLink} onClick={this.onRefresh}><FontAwesomeIcon icon={faRedo} /></Link>
+            </Tooltip>
             <Tooltip title='Multiple passwords'>
               <Link to={multipleLink} onClick={this.onListClick}><FontAwesomeIcon icon={faList} /></Link>
             </Tooltip>
@@ -198,6 +202,13 @@ export class PasswordCreatorComponent extends React.Component<any, PasswordCreat
       </PasswordCreatorWrap>
     );
   }
+
+  public onRefresh = (e: React.MouseEvent) => {
+    e.preventDefault();
+    this.setState({
+      passwords: this.generatePasswords()
+    });
+  };
 
   public onListClick = () => {
     const props = this.getUrlProps();
