@@ -53,7 +53,7 @@ export class Dice extends React.Component<{}, DiceState> {
               right here!
             </p>
           </Segment>
-          <DicePicker type={type} onTypeChange={this.onTypeChange} />
+          {/*<DicePicker type={type} onTypeChange={this.onTypeChange} />*/}
         </Block>
         <DiceResults
           results={results}
