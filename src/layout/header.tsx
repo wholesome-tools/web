@@ -2,6 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { Container } from './container';
 import { Switch, Route, Link } from "react-router-dom";
+import { Button } from '@material-ui/core';
 
 const HeaderWrap = styled.header`
   padding: 1rem 0;
@@ -9,10 +10,15 @@ const HeaderWrap = styled.header`
   border-bottom: 1px solid #DDDDDD;
 `;
 
+const HeaderInner = styled.div`
+  display: flex;
+`;
+
 const Logo = styled.h1`
   font-size: 1.5rem;
   margin: 0;
   font-weight: normal;
+  flex: 1;
 
   strong {
     font-weight: normal;
@@ -21,6 +27,14 @@ const Logo = styled.h1`
   a {
     color: inherit;
     text-decoration: none;
+  }
+`;
+
+const Links = styled.div`
+  img {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
   }
 `;
 
@@ -36,6 +50,8 @@ const App = styled.strong`
   }
 `;
 
+
+
 export class Header extends React.Component {
   public names = () => <App className='names'>:Names</App>;
   public passwords = () => <App className='passwords'>:Passwords</App>;
@@ -46,19 +62,28 @@ export class Header extends React.Component {
     return (
       <HeaderWrap>
         <Container>
-          <Logo>
-            <Link to='/'>
-              Wholesome
-              <Switch>
-                <Route path='/names' component={this.names} />
-                <Route path='/passwords' component={this.passwords} />
-                <Route path='/dice' component={this.dice} />
-                <Route path='' component={this.empty} />
-              </Switch>
-            </Link>
-          </Logo>
+          <HeaderInner>
+            <Logo>
+              <Link to='/'>
+                Wholesome
+                <Switch>
+                  <Route path='/names' component={this.names} />
+                  <Route path='/passwords' component={this.passwords} />
+                  <Route path='/dice' component={this.dice} />
+                  <Route path='' component={this.empty} />
+                </Switch>
+              </Link>
+            </Logo>
+            <Links>
+              <Button size='small' onClick={this.onGithubClick}><img src="/images/Github-Mark-32px.png" /> Github</Button>
+            </Links>
+          </HeaderInner>
         </Container>
       </HeaderWrap>
     );
+  }
+
+  public onGithubClick = () => {
+    window.open('https://github.com/wholesome-tools/web');
   }
 }
