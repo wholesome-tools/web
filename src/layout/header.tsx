@@ -34,7 +34,15 @@ const Links = styled.div`
   img {
     width: 20px;
     height: 20px;
-    margin-right: 10px;
+  }
+  .nomobile {
+    margin-left: 15px;
+    display: inline-block;
+  }
+  @media (max-width: 800px) {
+    .nomobile {
+      display: none;
+    }
   }
 `;
 
@@ -75,7 +83,7 @@ export class Header extends React.Component {
               </Link>
             </Logo>
             <Links>
-              <Button size='small' onClick={this.onGithubClick}><img src="/images/GitHub-Mark-32px.png" /> Github</Button>
+              <Button size='small' onClick={this.onGithubClick}><img src="/images/GitHub-Mark-32px.png" /><span className="nomobile">Github</span></Button>
             </Links>
           </HeaderInner>
         </Container>
