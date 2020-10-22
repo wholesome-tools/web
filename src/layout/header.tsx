@@ -83,7 +83,7 @@ export class Header extends React.Component {
               </Link>
             </Logo>
             <Links>
-              <Button size='small' onClick={this.onGithubClick}><img src="/images/GitHub-Mark-32px.png" /><span className="nomobile">Github</span></Button>
+              <Button size='small' onClick={this.onGithubClick}><img alt="Github" src="/images/GitHub-Mark-32px.png" /><span className="nomobile">Github</span></Button>
             </Links>
           </HeaderInner>
         </Container>
